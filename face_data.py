@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 import os
 
-dataset_path = r"face_dataset/"
+dataset_path = "./face_dataset/"
 os.makedirs(dataset_path, exist_ok=True)
 
-file_name = input("Enter name: ").strip().replace(" ", "_")
+file_name = input("Enter name: ")
 
 cap = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
@@ -41,7 +41,7 @@ while True:
 
     face_offset = frame[y1:y2, x1:x2]
 
-    print("face_offset shape:", face_offset.shape)  # DEBUG
+    # print("face_offset shape:", face_offset.shape)  # DEBUG
 
     if face_offset.size == 0:
         continue
@@ -69,8 +69,6 @@ if len(face_data) > 0:
     np.save(save_path, face_data)
 
     print("Saved to:", save_path)
-else:
-    print("⚠ ERROR: No samples collected. Nothing saved.")
 
 cap.release()
 cv2.destroyAllWindows()

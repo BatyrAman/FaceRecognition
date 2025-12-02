@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 import os
-
-from face_data import face_cascade, dataset_path, offset
-
+#
+# from face_data import face_cascade, dataset_path, offset
+#
 
 def distance(v1, v2):
     return np.sqrt((v1-v2)**2).sum()
@@ -66,12 +66,18 @@ while True:
 
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-    for face in faces:
-        x, y, w, h = face
+    for (x, y, w, h) in faces:
+        offset = 10
 
-        offset = 5
+        x1 = max(0, x - offset)
+        y1 = max(0, y - offset)
+        x2 = min(frame.shape[1], x + w + offset)
+        y2 = min(frame.shape[0], y + h + offset)
 
-        face_section = frame[y-offset:y+h+offset, x-offset:x+w+offset]
+        face_section = frame[y1:y2, x1:x2]
+        if face_section.size == 0:
+            continue
+
         face_section = cv2.resize(face_section, (200, 200))
         out = knn(trainset, face_section.flatten())
 
