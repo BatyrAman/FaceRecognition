@@ -1,56 +1,78 @@
 import cv2
-import os
 import numpy as np
+import os
+
+dataset_path = r"face_dataset/"
+os.makedirs(dataset_path, exist_ok=True)
+
+file_name = input("Enter name: ").strip().replace(" ", "_")
 
 cap = cv2.VideoCapture(0)
-# path = os.path.join(os.getcwd(), 'haarcascade_frontalface_alt.xml')
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 
-skip = 0
 face_data = []
-dataset_path = './face_dataset/'
-file_name = input("Enter the name of person: ")
+skip = 0
+
 while True:
     ret, frame = cap.read()
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    if ret == False:
+    if not ret:
+        print("Camera error")
         continue
 
-    faces = face_cascade.detectMultiScale(gray_frame, 1.3, 5)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+    print("faces detected:", len(faces))   # DEBUG
+
     if len(faces) == 0:
+        cv2.imshow("frame", frame)
+        if cv2.waitKey(1) == ord('q'):
+            break
         continue
 
-    k = 1
+    faces = sorted(faces, key=lambda x: x[2] * x[3], reverse=True)
+    x, y, w, h = faces[0]
 
-    faces = sorted(faces, key=lambda x: x[2]*x[3], reverse=True)
+    offset = 10
+    x1 = max(0, x - offset)
+    y1 = max(0, y - offset)
+    x2 = min(frame.shape[1], x + w + offset)
+    y2 = min(frame.shape[0], y + h + offset)
+
+    face_offset = frame[y1:y2, x1:x2]
+
+    print("face_offset shape:", face_offset.shape)  # DEBUG
+
+    if face_offset.size == 0:
+        continue
+
+    face_selection = cv2.resize(face_offset, (100, 100))
+
     skip += 1
-    for face in faces[:1]:
-        x, y, w, h = face
-        offset = 5
-        face_offset = frame[y-offset:y+h+offset, x-offset:x+w+offset]
-        face_selection = cv2.resize(face_offset, (200, 200))
+    if skip % 10 == 0:
+        face_data.append(face_selection)
+        print("Saved samples:", len(face_data))
 
-        if skip % 10 == 0:
-            face_data.append(face_selection)
-            print(len(face_data))
+    cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
+    cv2.imshow("frame", frame)
 
-        cv2.imshow(str(k), face_selection)
-        k = k + 1
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
-    cv2.imshow('faces', frame)
-
-    key = cv2.waitKey(1) & 0xFF
-
-    if key == ord('q'):
+    if cv2.waitKey(1) == ord('q'):
         break
-face_data = np.array(face_data)
-face_data = face_data.reshape((face_data.shape[0], -1))
 
-print(face_data.shape)
+# ---------------- SAVE -----------------
 
-np.save(dataset_path+file_name, face_data)
-print("Dataset saved at:{}". format(dataset_path+file_name+'.npy'))
+print("Collected samples:", len(face_data))  # DEBUG
+
+if len(face_data) > 0:
+    face_data = np.array(face_data)
+    face_data = face_data.reshape((face_data.shape[0], -1))
+
+    save_path = os.path.join(dataset_path, file_name + ".npy")
+    np.save(save_path, face_data)
+
+    print("Saved to:", save_path)
+else:
+    print("⚠ ERROR: No samples collected. Nothing saved.")
+
 cap.release()
 cv2.destroyAllWindows()

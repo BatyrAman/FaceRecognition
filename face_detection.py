@@ -21,7 +21,7 @@ while True:
 
 		offset = 10
 		face_offset = frame[y-offset:y+h+offset,x-offset:x+w+offset]
-		face_selection = cv2.resize(face_offset,(100,100))
+		face_selection = cv2.resize(face_offset,(200,200))
 
 		cv2.imshow("Face", face_selection)
 		cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
