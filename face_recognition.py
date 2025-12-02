@@ -15,7 +15,7 @@ def knn(train, test, k=5):
         iy = train[i, -1]
 
         d = distance(test, ix)
-        dist.append(d, iy)
+        dist.append([d, iy])
 
     dk = sorted(dist, key = lambda x: x[0])[:k]
     labels = np.array(dk)[:, -1]
@@ -28,7 +28,7 @@ def knn(train, test, k=5):
 cap = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
 
-dataset_path = "./face_dataset"
+dataset_path = "./face_dataset/"
 
 face_data = []
 labels = []
@@ -59,7 +59,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 while True:
     ret, frame = cap.read()
 
-    if ret == True:
+    if not ret:
         continue
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -71,12 +71,15 @@ while True:
 
         offset = 5
 
-        face_section = frame[y-offset:y+h+offset, x+offset:x+w+offset]
+        face_section = frame[y-offset:y+h+offset, x-offset:x+w+offset]
         face_section = cv2.resize(face_section, (200, 200))
         out = knn(trainset, face_section.flatten())
 
-        cv2.putText(frame, names[int(out)], (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        # cv2.putText(frame, names[int(out)], (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.putText(frame, names[int(out)], (x, y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7, (0, 255, 0), 2)
 
         cv2.imshow('Faces', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
