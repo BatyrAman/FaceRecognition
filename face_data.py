@@ -46,7 +46,7 @@ while True:
     if face_offset.size == 0:
         continue
 
-    face_selection = cv2.resize(face_offset, (100, 100))
+    face_selection = cv2.resize(face_offset, (200, 200))
 
     skip += 1
     if skip % 10 == 0:
@@ -58,8 +58,6 @@ while True:
 
     if cv2.waitKey(1) == ord('q'):
         break
-
-# ---------------- SAVE -----------------
 
 print("Collected samples:", len(face_data))  # DEBUG
 
